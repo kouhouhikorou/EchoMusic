@@ -3,9 +3,17 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import { MusicalNotesOutline, AddOutline } from '@vicons/ionicons5'
 
+const props = defineProps<{ open: boolean }>()
+const emit = defineEmits<{ (e: 'navigate'): void }>()
+
 const router = useRouter()
 const route = useRoute()
 const user = useUserStore()
+
+function navigate(path: string) {
+  router.push(path)
+  emit('navigate')
+}
 
 const primaryNav = [
   { path: '/', label: '首页' },
@@ -27,7 +35,7 @@ function isActive(p: string) {
 </script>
 
 <template>
-  <aside class="sidebar">
+  <aside class="sidebar" :class="{ open: open }">
     <!-- Primary nav -->
     <nav class="sidebar-nav">
       <div
@@ -35,7 +43,7 @@ function isActive(p: string) {
         :key="item.path"
         class="nav-item"
         :class="{ active: isActive(item.path) }"
-        @click="router.push(item.path)"
+        @click="navigate(item.path)"
       >
         {{ item.label }}
       </div>
@@ -52,7 +60,7 @@ function isActive(p: string) {
         :key="item.path"
         class="nav-item"
         :class="{ active: isActive(item.path) }"
-        @click="router.push(item.path)"
+        @click="navigate(item.path)"
       >
         {{ item.label }}
       </div>
@@ -74,7 +82,7 @@ function isActive(p: string) {
         :key="pl.id"
         class="nav-item text-[13px]"
         :class="{ active: route.params.id === pl.id }"
-        @click="router.push(`/playlist/${pl.id}`)"
+        @click="navigate(`/playlist/${pl.id}`)"
       >
         <div class="w-6 h-6 rounded bg-[#f0f0f0] flex-shrink-0 overflow-hidden mr-2">
           <img v-if="pl.cover" :src="pl.cover" class="w-full h-full object-cover" />
@@ -89,12 +97,12 @@ function isActive(p: string) {
       <div
         class="nav-item"
         :class="{ active: isActive('/settings') }"
-        @click="router.push('/settings')"
+        @click="navigate('/settings')"
       >设置</div>
       <div
         class="nav-item"
         :class="{ active: isActive('/login') }"
-        @click="router.push('/login')"
+        @click="navigate('/login')"
       >登录</div>
     </div>
   </aside>
@@ -105,9 +113,19 @@ function isActive(p: string) {
   width: 200px; height: 100%; display: flex; flex-direction: column; flex-shrink: 0;
   overflow: hidden; user-select: none;
   border-right: 1px solid rgba(0,0,0,0.06);
-  background: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+}
+
+/* Mobile: fixed drawer */
+@media (max-width: 1023px) {
+  .sidebar {
+    position: fixed; top: 56px; left: 0; bottom: 0; z-index: 60;
+    transform: translateX(-100%); transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.08);
+  }
+  .sidebar.open { transform: translateX(0); }
 }
 
 .sidebar-nav { padding: 8px; }

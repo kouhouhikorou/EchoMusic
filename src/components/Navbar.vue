@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowBack, ArrowForward, SearchOutline } from '@vicons/ionicons5'
+import { ArrowBack, ArrowForward, SearchOutline, MenuOutline } from '@vicons/ionicons5'
+
+const props = defineProps<{ sidebarOpen: boolean }>()
+const emit = defineEmits<{ (e: 'toggle-sidebar'): void }>()
 
 const router = useRouter()
 const route = useRoute()
@@ -18,6 +21,11 @@ function doSearch() {
 <template>
   <nav class="navbar">
     <div class="nav-left">
+      <!-- Hamburger (mobile) -->
+      <button class="nav-btn flex lg:hidden" @click="emit('toggle-sidebar')">
+        <MenuOutline class="w-5 h-5" />
+      </button>
+      <!-- Back/Forward (desktop) -->
       <button class="nav-btn hidden sm:flex" @click="go('back')">
         <ArrowBack class="w-5 h-5" />
       </button>
