@@ -121,16 +121,19 @@ function isActive(p: string) {
 /* Mobile: fixed drawer */
 @media (max-width: 1023px) {
   .sidebar {
-    position: fixed; top: 56px; left: 0; bottom: 0; z-index: 60;
+    position: fixed; top: 56px; left: 0; bottom: 56px; z-index: 60;
     transform: translateX(-100%); transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 4px 0 24px rgba(0,0,0,0.08);
+    padding-bottom: env(safe-area-inset-bottom);
   }
   .sidebar.open { transform: translateX(0); }
+  .sidebar-footer { margin-top: 0; }
+  .nav-item { padding: 6px 10px; font-size: 13px; }
 }
 
 .sidebar-nav { padding: 8px; }
 .sidebar-section { padding: 0 8px; }
-.sidebar-footer { padding: 8px; border-top: 1px solid rgba(0,0,0,0.05); margin-top: auto; }
+.sidebar-footer { padding: 8px; border-top: 1px solid rgba(0,0,0,0.05); margin-top: auto; flex-shrink: 0; }
 
 .nav-item {
   display: flex; align-items: center; gap: 8px; padding: 8px 12px;
