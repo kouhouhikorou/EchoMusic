@@ -32,8 +32,7 @@ async function initDB() {
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
-      username TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
+      username TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       created_at INTEGER
     )
@@ -108,32 +107,32 @@ function auth(req, res, next) {
 
 // ---- Auth routes ----
 app.post('/auth/register', (req, res) => {
-  const { username, email, password } = req.body
-  if (!username || !email || !password) return res.status(400).json({ error: '请填写完整信息' })
+  const { username, password } = req.body
+  if (!username || !password) return res.status(400).json({ error: '请填写用户名和密码' })
   if (password.length < 6) return res.status(400).json({ error: '密码至少6位' })
 
-  const rows = query('SELECT id FROM users WHERE email = ?', [email])
-  if (rows.length) return res.status(409).json({ error: '该邮箱已注册' })
+  const rows = query('SELECT id FROM users WHERE username = ?', [username])
+  if (rows.length) return res.status(409).json({ error: '用户名已存在' })
 
   const id = 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
   const passwordHash = bcrypt.hashSync(password, 10)
-  run('INSERT INTO users (id, username, email, password_hash) VALUES (?, ?, ?, ?)', [id, username, email, passwordHash])
+  run('INSERT INTO users (id, username, password_hash) VALUES (?, ?, ?)', [id, username, passwordHash])
 
-  const token = jwt.sign({ id, username, email }, JWT_SECRET, { expiresIn: JWT_EXPIRES })
-  res.json({ token, user: { id, username, email } })
+  const token = jwt.sign({ id, username }, JWT_SECRET, { expiresIn: JWT_EXPIRES })
+  res.json({ token, user: { id, username } })
 })
 
 app.post('/auth/login', (req, res) => {
-  const { email, password } = req.body
-  if (!email || !password) return res.status(400).json({ error: '请填写邮箱和密码' })
+  const { username, password } = req.body
+  if (!username || !password) return res.status(400).json({ error: '请填写用户名和密码' })
 
-  const rows = query('SELECT * FROM users WHERE email = ?', [email])
+  const rows = query('SELECT * FROM users WHERE username = ?', [username])
   if (!rows.length) return res.status(401).json({ error: '账号不存在' })
   const user = rows[0]
   if (!bcrypt.compareSync(password, user.password_hash)) return res.status(401).json({ error: '密码错误' })
 
-  const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, JWT_SECRET, { expiresIn: JWT_EXPIRES })
-  res.json({ token, user: { id: user.id, username: user.username, email: user.email } })
+  const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: JWT_EXPIRES })
+  res.json({ token, user: { id: user.id, username: user.username } })
 })
 
 // ---- Sync routes ----
