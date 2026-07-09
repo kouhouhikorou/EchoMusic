@@ -6,27 +6,20 @@ import BottomNav from './BottomNav.vue'
 import MiniPlayer from './MiniPlayer.vue'
 
 const route = useRoute()
-const hideChrome = computed(() => route.name === 'player')
+const hideLayout = computed(() => route.name === 'player')
 </script>
 
 <template>
-  <div class="flex h-full w-full overflow-hidden bg-surface-950">
-    <!-- Sidebar (desktop) -->
-    <Sidebar v-if="!hideChrome" class="hidden lg:flex" />
+  <div class="flex h-full w-full overflow-hidden bg-[#fafafa]">
+    <Sidebar v-if="!hideLayout" class="hidden lg:flex" />
 
-    <!-- Main area -->
-    <main class="flex-1 flex flex-col overflow-hidden min-w-0" :class="{ 'pb-16 lg:pb-[72px]': !hideChrome }">
+    <main class="flex-1 flex flex-col overflow-hidden min-w-0" :class="{ 'pb-16 lg:pb-[68px]': !hideLayout }">
       <div class="flex-1 overflow-y-auto overflow-x-hidden">
-        <router-view v-slot="{ Component }">
-          <transition name="page" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </router-view>
+        <slot />
       </div>
-      <MiniPlayer v-if="!hideChrome" />
+      <MiniPlayer v-if="!hideLayout" />
     </main>
   </div>
 
-  <!-- Bottom nav (mobile) -->
-  <BottomNav v-if="!hideChrome" class="lg:hidden" />
+  <BottomNav v-if="!hideLayout" class="lg:hidden" />
 </template>

@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
 import AppLayout from './components/AppLayout.vue'
 import DisclaimerModal from './components/DisclaimerModal.vue'
-
-const router = useRouter()
 </script>
 
 <template>
   <DisclaimerModal />
   <AppLayout>
-    <router-view />
+    <router-view v-slot="{ Component }">
+      <transition name="page" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
   </AppLayout>
 </template>

@@ -6,7 +6,7 @@ import { useUserStore } from '@/stores/userStore'
 import { getRecommendPlaylists } from '@/api/musicApi'
 import type { Song } from '@/stores/playerStore'
 import SongList from '@/components/SongList.vue'
-import { SearchOutline, PlayCircleOutline, ChevronForward, Play } from '@vicons/ionicons5'
+import { SearchOutline, Play } from '@vicons/ionicons5'
 
 const router = useRouter()
 const player = usePlayerStore()
@@ -21,94 +21,62 @@ onMounted(async () => {
   loading.value = false
 })
 
-function playSong(song: Song, songs: Song[], index: number) {
-  player.playQueue(songs, index)
-}
+function playSong(song: Song, songs: Song[], index: number) { player.playQueue(songs, index) }
 </script>
 
 <template>
   <div class="h-full overflow-y-auto">
-    <div class="max-w-5xl mx-auto px-5 py-6 lg:py-8">
-      <!-- Hero banner -->
-      <div
-        class="relative rounded-2xl overflow-hidden mb-8 cursor-pointer group"
-        @click="router.push('/search')"
-      >
-        <div class="absolute inset-0 bg-gradient-to-br from-brand-600 via-brand-500 to-orange-500 opacity-90" />
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" />
-        <div class="relative flex items-center justify-between px-6 py-8 sm:px-8 sm:py-10">
-          <div>
-            <h2 class="text-xl sm:text-2xl font-bold text-white mb-1.5">发现你的音乐</h2>
-            <p class="text-sm text-white/70">搜索网易云 · QQ · 酷狗 · Bilibili 多平台歌曲</p>
-          </div>
-          <div class="flex-shrink-0 w-12 h-12 rounded-full bg-white/20 backdrop-blur flex items-center justify-center group-hover:bg-white/30 transition-all group-hover:scale-105">
-            <SearchOutline class="w-6 h-6 text-white" />
-          </div>
+    <div class="max-w-[1100px] mx-auto px-6 py-6 lg:py-8">
+      <!-- Top bar -->
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <h2 class="text-[22px] font-bold text-[#1a1a1a]">发现音乐</h2>
+        </div>
+        <div
+          class="lg:hidden flex items-center gap-2 px-3 py-1.5 bg-[#f5f5f5] rounded-full text-[13px] text-[#666] cursor-pointer"
+          @click="router.push('/search')"
+        >
+          <SearchOutline class="w-4 h-4" />
+          <span>搜索</span>
         </div>
       </div>
 
       <!-- Quick entry -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         <div
-          class="flex items-center gap-3 px-4 py-3.5 bg-surface-900/70 rounded-xl cursor-pointer hover:bg-surface-800 transition-all border border-white/5 hover:border-white/10"
-          @click="router.push('/recent')"
+          v-for="item in [
+            { path: '/recent', label: '最近播放', icon: '🕐', bg: '#eef2ff', color: '#6366f1' },
+            { path: '/favorites', label: '我喜欢的', icon: '♥', bg: '#fef0f0', color: '#ec4141' },
+            { path: '/local', label: '本地音乐', icon: '📂', bg: '#f0fdf4', color: '#22c55e' },
+            { path: '/download', label: '下载管理', icon: '⬇', bg: '#faf5ff', color: '#a855f7' },
+          ]"
+          :key="item.path"
+          class="flex items-center gap-3 px-4 py-3.5 bg-white rounded-xl cursor-pointer hover:shadow-md transition-shadow border border-[#f0f0f0]"
+          @click="router.push(item.path)"
         >
-          <div class="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center">
-            <PlayCircleOutline class="w-5 h-5 text-blue-400" />
+          <div class="w-9 h-9 rounded-lg flex items-center justify-center text-sm" :style="{ background: item.bg, color: item.color }">
+            {{ item.icon }}
           </div>
-          <span class="text-[13px] font-medium">最近播放</span>
-        </div>
-        <div
-          class="flex items-center gap-3 px-4 py-3.5 bg-surface-900/70 rounded-xl cursor-pointer hover:bg-surface-800 transition-all border border-white/5 hover:border-white/10"
-          @click="router.push('/favorites')"
-        >
-          <div class="w-9 h-9 rounded-lg bg-brand-500/10 flex items-center justify-center">
-            <span class="text-base">♥</span>
-          </div>
-          <span class="text-[13px] font-medium">我喜欢的</span>
-        </div>
-        <div
-          class="flex items-center gap-3 px-4 py-3.5 bg-surface-900/70 rounded-xl cursor-pointer hover:bg-surface-800 transition-all border border-white/5 hover:border-white/10"
-          @click="router.push('/local')"
-        >
-          <div class="w-9 h-9 rounded-lg bg-green-500/10 flex items-center justify-center">
-            <span class="text-base">📂</span>
-          </div>
-          <span class="text-[13px] font-medium">本地音乐</span>
-        </div>
-        <div
-          class="flex items-center gap-3 px-4 py-3.5 bg-surface-900/70 rounded-xl cursor-pointer hover:bg-surface-800 transition-all border border-white/5 hover:border-white/10"
-          @click="router.push('/download')"
-        >
-          <div class="w-9 h-9 rounded-lg bg-purple-500/10 flex items-center justify-center">
-            <span class="text-base">⬇</span>
-          </div>
-          <span class="text-[13px] font-medium">下载管理</span>
+          <span class="text-[13px] font-medium text-[#1a1a1a]">{{ item.label }}</span>
         </div>
       </div>
 
-      <!-- Recent plays -->
+      <!-- Recent -->
       <section v-if="user.recentPlays.length > 0" class="mb-8">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-base font-semibold">最近播放</h3>
-          <button class="text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1" @click="router.push('/recent')">
-            查看全部 <ChevronForward class="w-3 h-3" />
-          </button>
+          <h3 class="text-base font-semibold text-[#1a1a1a]">最近播放</h3>
+          <button class="text-xs text-[#999] hover:text-[#666]" @click="router.push('/recent')">查看全部 →</button>
         </div>
-        <div class="bg-surface-900/50 rounded-xl border border-white/5 overflow-hidden">
-          <SongList
-            :songs="user.recentPlays.slice(0, 8)"
-            :show-cover="true"
-            @play="(song, idx) => playSong(song, user.recentPlays, idx)"
-          />
+        <div class="bg-white rounded-xl border border-[#f0f0f0] overflow-hidden">
+          <SongList :songs="user.recentPlays.slice(0, 8)" :show-cover="true" @play="(s, i) => playSong(s, user.recentPlays, i)" />
         </div>
       </section>
 
       <!-- Recommended playlists -->
-      <section class="mb-8">
-        <h3 class="text-base font-semibold mb-4">推荐歌单</h3>
+      <section>
+        <h3 class="text-base font-semibold text-[#1a1a1a] mb-4">推荐歌单</h3>
         <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          <div v-for="i in 5" :key="i" class="aspect-square rounded-xl bg-surface-800 animate-pulse" />
+          <div v-for="i in 5" :key="i" class="aspect-square rounded-xl bg-[#f5f5f5] animate-pulse" />
         </div>
         <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           <div
@@ -117,28 +85,21 @@ function playSong(song: Song, songs: Song[], index: number) {
             class="group cursor-pointer"
             @click="router.push(`/playlist/${pl.id}`)"
           >
-            <div class="relative aspect-square rounded-xl overflow-hidden mb-2.5 bg-surface-800 shadow-lg">
+            <div class="relative aspect-square rounded-xl overflow-hidden mb-2.5 bg-[#f0f0f0] shadow-sm">
               <img
                 v-if="pl.picUrl || pl.coverImgUrl"
                 :src="pl.picUrl || pl.coverImgUrl"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400"
               />
-              <div v-else class="w-full h-full flex items-center justify-center text-gray-600 text-2xl">🎵</div>
-              <!-- Play count overlay -->
-              <div v-if="pl.playCount" class="absolute top-2 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/50 text-[10px] text-white/80">
-                <ChevronForward class="w-2.5 h-2.5" />
-                {{ pl.playCount > 10000 ? `${(pl.playCount / 10000).toFixed(1)}万` : pl.playCount }}
+              <div v-else class="w-full h-full flex items-center justify-center text-3xl">🎵</div>
+              <div v-if="pl.playCount" class="absolute top-2 right-2 text-[10px] text-white/90 bg-black/40 px-1.5 py-0.5 rounded-full">
+                ▶ {{ pl.playCount > 100000 ? `${(pl.playCount / 10000).toFixed(0)}万` : pl.playCount }}
               </div>
-              <!-- Hover play button -->
-              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-                <div class="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
-                  <Play class="w-4 h-4 text-black ml-0.5" />
-                </div>
+              <div class="absolute right-2 bottom-2 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg translate-y-1 group-hover:translate-y-0">
+                <Play class="w-3.5 h-3.5 text-[#ec4141] ml-0.5" />
               </div>
             </div>
-            <div class="text-[13px] leading-snug line-clamp-2 text-gray-300 group-hover:text-white transition-colors">
-              {{ pl.name }}
-            </div>
+            <div class="text-[13px] leading-snug line-clamp-2 text-[#333] group-hover:text-[#1a1a1a]">{{ pl.name }}</div>
           </div>
         </div>
       </section>
