@@ -41,7 +41,7 @@ function playSong(song: Song, songs: Song[], index: number) { player.playQueue(s
 </script>
 
 <template>
-  <div v-show="show && keywords">
+  <div v-if="keywords">
     <!-- 艺人 + 专辑 -->
     <div v-if="artists.length || albums.length" class="flex gap-32 mt-[98px]">
       <div v-if="artists.length" class="flex-1">

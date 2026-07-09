@@ -17,7 +17,7 @@ const showPlayer = computed(() => !['player', 'login'].includes(route.name as st
   <!-- Player page: fullscreen overlay -->
   <template v-if="isPlayerPage">
     <router-view v-slot="{ Component }">
-      <transition name="page" mode="out-in">
+      <transition name="page" >
         <component :is="Component" />
       </transition>
     </router-view>
@@ -30,7 +30,7 @@ const showPlayer = computed(() => !['player', 'login'].includes(route.name as st
       <Sidebar />
       <main>
         <router-view v-slot="{ Component }">
-          <transition name="page" mode="out-in">
+          <transition name="page" >
             <component :is="Component" />
           </transition>
         </router-view>
