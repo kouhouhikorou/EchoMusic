@@ -10,8 +10,12 @@ function handleAccept() { acceptDisclaimer(dontShowAgain.value); showModal.value
 
 <template>
   <Teleport to="body">
-    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl mx-4 flex flex-col max-h-[88vh]">
+    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" @click.self="handleAccept">
+      <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl mx-4 flex flex-col max-h-[88vh] relative">
+        <!-- Close button -->
+        <button class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#f0f0f0] text-[var(--color-text)] opacity-40 hover:opacity-80 transition-all z-10" @click="handleAccept">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
         <!-- Scrollable content -->
         <div class="overflow-y-auto px-8 pt-8 pb-4">
           <div class="text-center mb-4">
