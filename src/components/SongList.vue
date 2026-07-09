@@ -79,9 +79,11 @@ function formatTime(d: number): string {
 <style scoped>
 .track-row {
   display: flex; align-items: center;
-  padding: 8px; border-radius: 12px;
+  padding: 6px 4px; border-radius: 10px;
   user-select: none; cursor: pointer; transition: background 0.3s;
 }
+@media (min-width: 640px) { .track-row { padding: 8px; border-radius: 12px; } }
+
 .track-row.track-hover { background: var(--color-secondary-bg); }
 .track-row.track-playing {
   background: var(--color-primary-bg); color: var(--color-primary);
@@ -92,35 +94,45 @@ function formatTime(d: number): string {
 .track-row.track-playing .track-artist { color: var(--color-primary); opacity: 0.88; }
 
 .track-no {
-  display: flex; justify-content: center; align-items: center; border-radius: 8px;
-  margin: 0 20px 0 10px; width: 12px; color: var(--color-text);
-  cursor: default; font-size: 14px;
+  display: none; justify-content: center; align-items: center; border-radius: 8px;
+  margin: 0 8px 0 2px; width: 20px; color: var(--color-text);
+  cursor: default; font-size: 13px;
 }
+@media (min-width: 480px) { .track-no { display: flex; } }
 
 .track-img {
-  border-radius: 8px; height: 46px; width: 46px; margin-right: 20px;
+  display: none;
+  border-radius: 6px; height: 40px; width: 40px; margin-right: 10px;
   border: 1px solid rgba(0,0,0,0.04); cursor: pointer;
 }
+@media (min-width: 480px) { .track-img { display: block; } }
+@media (min-width: 640px) { .track-img { height: 46px; width: 46px; margin-right: 20px; } }
 
 .track-info { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .track-title {
-  font-size: 18px; font-weight: 600; color: var(--color-text);
-  padding-right: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 14px; font-weight: 600; color: var(--color-text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+@media (min-width: 640px) { .track-title { font-size: 18px; } }
 .track-artist {
-  margin-top: 2px; font-size: 13px; opacity: 0.68; color: var(--color-text);
+  margin-top: 1px; font-size: 12px; opacity: 0.68; color: var(--color-text);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.track-featured { font-weight: 500; font-size: 14px; opacity: 0.72; }
+@media (min-width: 640px) { .track-artist { font-size: 13px; margin-top: 2px; } }
+.track-featured { font-weight: 500; font-size: 12px; opacity: 0.72; }
 
-.track-album {
-  flex: 1; font-size: 16px; opacity: 0.88; color: var(--color-text);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+.track-album { display: none; }
+@media (min-width: 640px) {
+  .track-album {
+    display: block; flex: 1; font-size: 15px; opacity: 0.88; color: var(--color-text);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
 }
 .track-album a:hover { text-decoration: underline; }
 
 .track-time {
-  font-size: 16px; width: 50px; text-align: right; margin-right: 10px;
-  font-variant-numeric: tabular-nums; opacity: 0.88; color: var(--color-text);
+  font-size: 12px; width: 36px; text-align: right; margin-right: 4px;
+  font-variant-numeric: tabular-nums; opacity: 0.68; color: var(--color-text); flex-shrink: 0;
 }
+@media (min-width: 640px) { .track-time { font-size: 16px; width: 50px; margin-right: 10px; opacity: 0.88; } }
 </style>

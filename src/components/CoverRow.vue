@@ -54,7 +54,11 @@ function goTo(id: string | number) {
 </template>
 
 <style scoped>
-.cover-row { display: grid; }
+.cover-row { display: grid; gap: 16px; }
+@media (min-width: 480px) { .cover-row { gap: 24px; } }
+@media (min-width: 1024px) { .cover-row { gap: 44px 24px; } }
+
+/* Responsive columns via inline style + overrides */
 .cover-item { cursor: pointer; color: var(--color-text); }
 .cover-item.artist { text-align: center; }
 
@@ -69,14 +73,16 @@ function goTo(id: string | number) {
 }
 .cover-text { margin-top: 8px; }
 .cover-title {
-  font-size: 16px; font-weight: 600; line-height: 20px;
+  font-size: 13px; font-weight: 600; line-height: 18px;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
   overflow: hidden; word-break: break-all;
 }
+@media (min-width: 640px) { .cover-title { font-size: 16px; line-height: 20px; } }
 .cover-sub {
-  font-size: 12px; opacity: 0.68; line-height: 18px; margin-top: 2px;
+  font-size: 11px; opacity: 0.68; line-height: 16px; margin-top: 2px;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1;
   overflow: hidden;
 }
+@media (min-width: 640px) { .cover-sub { font-size: 12px; line-height: 18px; } }
 .cover-item:hover .cover-title { text-decoration: underline; }
 </style>

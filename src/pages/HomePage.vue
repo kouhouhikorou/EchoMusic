@@ -104,19 +104,27 @@ function playSong(song: Song, songs: Song[], index: number) { player.playQueue(s
 <style scoped>
 .home-page { padding-top: 8px; }
 
-.section { margin-top: 48px; }
-.section:first-child { margin-top: 16px; }
+.section { margin-top: 32px; }
+.section:first-child { margin-top: 8px; }
+@media (min-width: 640px) {
+  .section { margin-top: 48px; }
+  .section:first-child { margin-top: 16px; }
+}
 
 .section-title {
   display: flex; justify-content: space-between; align-items: flex-end;
-  margin-bottom: 20px; font-size: 28px; font-weight: 700; color: var(--color-text);
+  margin-bottom: 16px; font-size: 22px; font-weight: 700; color: var(--color-text);
+}
+@media (min-width: 640px) {
+  .section-title { font-size: 28px; margin-bottom: 20px; }
 }
 .section-title a {
   font-size: 13px; font-weight: 600; opacity: 0.68; text-decoration: none;
 }
 .section-title a:hover { text-decoration: underline; }
 
-.quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.quick-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+@media (min-width: 480px) { .quick-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; } }
 .quick-card {
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   padding: 20px; border-radius: 12px; cursor: pointer;

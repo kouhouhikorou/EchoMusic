@@ -11,99 +11,51 @@ const progress = ref(0)
 let interval: ReturnType<typeof setInterval> | null = null
 
 const currentTrack = computed(() => player.currentSong)
-const progressMax = computed(() => {
-  const max = ~~((player.duration || 0))
-  return max > 1 ? max - 1 : max
-})
 const isLiked = computed(() => currentTrack.value ? user.isFavorite(currentTrack.value) : false)
 
-onMounted(() => {
-  interval = setInterval(() => { progress.value = player.progress }, 1000)
-})
+onMounted(() => { interval = setInterval(() => { progress.value = player.progress }, 1000) })
 onBeforeUnmount(() => { if (interval) clearInterval(interval) })
 
-function formatTime(v: number): string {
-  if (!v) return '0:00'
-  const m = ~~(v / 60), s = (~~(v % 60)).toString().padStart(2, '0')
-  return `${m}:${s}`
-}
-
-function setSeek() {
-  player.setProgress(progress.value)
-}
-
-function toggleLike() {
-  if (currentTrack.value) user.toggleFavorite(currentTrack.value)
-}
-
-function repeat() {
-  const modes = ['off', 'on', 'one'] as const
-  const idx = modes.indexOf(player.mode === 'single' ? 'one' : player.mode === 'list' ? 'on' : 'off')
-  const next = modes[(idx + 1) % 3]
-  player.mode = next === 'one' ? 'single' : next === 'on' ? 'list' : 'shuffle'
-}
-
-function shuffle() {
-  player.mode = player.mode === 'shuffle' ? 'list' : 'shuffle'
-}
+function toggleLike() { if (currentTrack.value) user.toggleFavorite(currentTrack.value) }
 </script>
 
 <template>
   <div v-if="currentTrack" class="player-bar">
-    <!-- Progress -->
     <div class="progress-wrap">
-      <div class="h-[2px] bg-[#e0e0e0] rounded-full cursor-pointer relative" @click="(e: MouseEvent) => { const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); const pct = (e.clientX - r.left) / r.width; player.setProgress(pct * player.duration); }">
-        <div class="h-full bg-[var(--color-primary)] rounded-full transition-all duration-200" :style="{ width: `${progressMax > 0 ? (progress / progressMax) * 100 : 0}%` }" />
+      <div class="progress-track" @click="(e: MouseEvent) => { const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); player.setProgress(((e.clientX - r.left) / r.width) * player.duration); }">
+        <div class="progress-fill" :style="{ width: `${player.duration > 0 ? (player.progress / player.duration) * 100 : 0}%` }" />
       </div>
     </div>
 
     <div class="player-inner">
       <!-- Left: track info -->
-      <div class="player-section">
-        <div class="flex items-center gap-3">
-          <img
-            v-if="currentTrack.cover"
-            :src="currentTrack.cover + '?param=224y224'"
-            class="h-[46px] w-[46px] rounded-md object-cover shadow-md cursor-pointer"
-            @click="router.push('/player')"
-          />
-          <div v-else class="h-[46px] w-[46px] rounded-md bg-[var(--color-primary-bg)] flex items-center justify-center text-[var(--color-primary)] text-lg">♪</div>
-          <div class="flex flex-col justify-center min-w-0">
-            <div class="text-[16px] font-semibold text-[var(--color-text)] opacity-88 truncate cursor-pointer hover:underline" @click="router.push('/player')">{{ currentTrack.title }}</div>
-            <div class="text-xs text-[var(--color-text)] opacity-58 truncate cursor-pointer hover:underline" @click="router.push('/artist/0')">{{ currentTrack.artist }}</div>
-          </div>
-          <button class="ml-4 p-2 text-[var(--color-text)] opacity-58 hover:opacity-100 transition-opacity" @click="toggleLike">
-            <span v-if="isLiked" class="text-[var(--color-primary)] text-lg">♥</span>
-            <span v-else class="text-lg">♡</span>
-          </button>
+      <div class="player-left">
+        <img v-if="currentTrack.cover" :src="currentTrack.cover + '?param=224y224'" class="track-cover" @click="router.push('/player')" />
+        <div v-else class="track-cover-placeholder">♪</div>
+        <div class="track-info" @click="router.push('/player')">
+          <div class="track-title">{{ currentTrack.title }}</div>
+          <div class="track-artist">{{ currentTrack.artist }}</div>
         </div>
+        <button class="like-btn" @click.stop="toggleLike">
+          <span v-if="isLiked" class="text-[var(--color-primary)]">♥</span>
+          <span v-else>♡</span>
+        </button>
       </div>
 
-      <!-- Center: controls -->
-      <div class="player-section justify-center">
-        <div class="flex items-center gap-4">
-          <button class="p-2 text-[var(--color-text)] opacity-58 hover:opacity-100 transition-opacity" @click="player.prev()" title="上一首">⏮</button>
-          <button class="w-[42px] h-[42px] flex items-center justify-center rounded-full bg-[var(--color-primary)] text-white hover:scale-105 transition-transform" @click="player.togglePlay()" title="播放/暂停">
-            <span v-if="player.isPlaying" class="text-xl">⏸</span>
-            <span v-else class="text-xl ml-0.5">▶</span>
-          </button>
-          <button class="p-2 text-[var(--color-text)] opacity-58 hover:opacity-100 transition-opacity" @click="player.next()" title="下一首">⏭</button>
-        </div>
+      <!-- Center: play controls -->
+      <div class="player-center">
+        <button class="ctrl-btn" @click="player.prev()">⏮</button>
+        <button class="play-btn" @click="player.togglePlay()">
+          <span v-if="player.isPlaying">⏸</span>
+          <span v-else>▶</span>
+        </button>
+        <button class="ctrl-btn" @click="player.next()">⏭</button>
       </div>
 
-      <!-- Right: extra controls -->
-      <div class="player-section justify-end">
-        <div class="flex items-center gap-2">
-          <button class="p-2 text-[var(--color-text)] opacity-58 hover:opacity-100 transition-opacity" :class="{ '!opacity-100 !text-[var(--color-primary)]': player.mode !== 'list' }" @click="repeat" title="循环">🔁</button>
-          <button class="p-2 text-[var(--color-text)] opacity-58 hover:opacity-100 transition-opacity" :class="{ '!opacity-100 !text-[var(--color-primary)]': player.mode === 'shuffle' }" @click="shuffle" title="随机">🔀</button>
-          <div class="flex items-center gap-1 ml-2">
-            <button class="p-2 text-[var(--color-text)] opacity-58 hover:opacity-100 transition-opacity" @click="player.setVolume(Math.max(0, player.volume - 0.1))">🔉</button>
-            <div class="w-[60px] h-[2px] bg-[#e0e0e0] rounded-full cursor-pointer" @click="(e: MouseEvent) => { const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); player.setVolume((e.clientX - r.left) / r.width); }">
-              <div class="h-full bg-[var(--color-primary)] rounded-full" :style="{ width: `${player.volume * 100}%` }" />
-            </div>
-          </div>
-          <button class="p-2 ml-2 text-[var(--color-text)] opacity-58 hover:opacity-100 transition-opacity" @click="router.push('/player')" title="歌词">🎤</button>
-        </div>
+      <!-- Right: extra (desktop only) -->
+      <div class="player-right">
+        <button class="extra-btn" :class="{ active: player.mode !== 'list' }" @click="player.toggleMode()">🔁</button>
+        <button class="extra-btn" :class="{ active: player.mode === 'shuffle' }" @click="player.mode = player.mode === 'shuffle' ? 'list' : 'shuffle'">🔀</button>
       </div>
     </div>
   </div>
@@ -111,20 +63,63 @@ function shuffle() {
 
 <style scoped>
 .player-bar {
-  position: fixed; bottom: 0; right: 0; left: 0;
+  position: fixed; bottom: 56px; right: 0; left: 0;
   display: flex; flex-direction: column; justify-content: space-around;
-  height: 64px;
+  height: 56px;
   backdrop-filter: saturate(180%) blur(30px);
-  background-color: var(--color-navbar-bg);
-  z-index: 100;
+  background-color: var(--color-navbar-bg); z-index: 100;
 }
-.progress-wrap { margin-top: -6px; margin-bottom: -4px; width: 100%; }
+@media (min-width: 640px) {
+  .player-bar { bottom: 0; height: 64px; }
+}
+
+.progress-wrap { margin-top: -3px; width: 100%; padding: 0 8px; }
+@media (min-width: 640px) { .progress-wrap { padding: 0 5vw; } }
+.progress-track { height: 2px; background: #e0e0e0; border-radius: 1px; cursor: pointer; }
+.progress-fill { height: 100%; background: var(--color-primary); border-radius: 1px; transition: width 0.3s; }
+
 .player-inner {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  height: 100%; padding-right: 10vw; padding-left: 10vw;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 100%; padding: 0 8px; gap: 4px;
 }
-@media (max-width: 1336px) {
-  .player-inner { padding: 0 5vw; }
+@media (min-width: 640px) {
+  .player-inner { display: grid; grid-template-columns: 1fr auto 1fr; padding: 0 5vw; gap: 0; }
 }
-.player-section { display: flex; align-items: center; }
+
+/* Left */
+.player-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.track-cover { height: 38px; width: 38px; border-radius: 6px; object-fit: cover; cursor: pointer; flex-shrink: 0; }
+@media (min-width: 640px) { .track-cover { height: 46px; width: 46px; } }
+.track-cover-placeholder {
+  height: 38px; width: 38px; border-radius: 6px; flex-shrink: 0;
+  background: var(--color-primary-bg); display: flex; align-items: center;
+  justify-content: center; color: var(--color-primary); font-size: 16px;
+}
+.track-info { min-width: 0; cursor: pointer; display: none; }
+@media (min-width: 480px) { .track-info { display: block; } }
+.track-title { font-size: 13px; font-weight: 600; color: var(--color-text); opacity: 0.88; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (min-width: 640px) { .track-title { font-size: 16px; } }
+.track-artist { font-size: 11px; opacity: 0.58; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.like-btn { padding: 6px; font-size: 16px; opacity: 0.58; flex-shrink: 0; display: none; }
+@media (min-width: 480px) { .like-btn { display: block; } }
+.like-btn:hover { opacity: 1; }
+
+/* Center */
+.player-center { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+@media (min-width: 640px) { .player-center { gap: 16px; } }
+.ctrl-btn { padding: 6px; font-size: 16px; opacity: 0.58; color: var(--color-text); }
+.ctrl-btn:hover { opacity: 1; }
+.play-btn {
+  width: 38px; height: 38px; border-radius: 50%; background: var(--color-primary); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 16px; transition: transform 0.15s;
+}
+.play-btn:hover { transform: scale(1.05); }
+@media (min-width: 640px) { .play-btn { width: 42px; height: 42px; font-size: 18px; } }
+
+/* Right */
+.player-right { display: none; align-items: center; gap: 4px; justify-content: flex-end; }
+@media (min-width: 640px) { .player-right { display: flex; } }
+.extra-btn { padding: 6px; font-size: 14px; opacity: 0.38; color: var(--color-text); }
+.extra-btn:hover { opacity: 0.88; }
+.extra-btn.active { opacity: 0.88; color: var(--color-primary); }
 </style>
