@@ -118,16 +118,20 @@ function isActive(p: string) {
   -webkit-backdrop-filter: blur(20px);
 }
 
-/* Mobile: fixed drawer */
+/* Mobile: fixed drawer, always scrollable */
 @media (max-width: 1023px) {
   .sidebar {
     position: fixed; top: 56px; left: 0; bottom: 56px; z-index: 60;
     transform: translateX(-100%); transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 4px 0 24px rgba(0,0,0,0.08);
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    display: block;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
   }
   .sidebar.open { transform: translateX(0); }
   .sidebar-footer { margin-top: 0; }
+  .sidebar-section.flex-1 { flex: none; }
   .nav-item { padding: 6px 10px; font-size: 13px; }
 }
 
