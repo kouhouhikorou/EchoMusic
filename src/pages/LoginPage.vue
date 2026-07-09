@@ -31,8 +31,13 @@ async function submit() {
     currentUser.value = getUser()
     router.push('/')
   } catch (e: any) {
-    const msg = e?.response?.data?.error || e.message || '操作失败'
-    error.value = msg
+    if (e?.response?.data?.error) {
+      error.value = e.response.data.error
+    } else if (e?.message === 'Network Error') {
+      error.value = '无法连接服务器，请在设置中检查服务器地址或启动后端服务'
+    } else {
+      error.value = e.message || '操作失败'
+    }
   } finally {
     loading.value = false
   }
