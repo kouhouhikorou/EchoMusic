@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePlayerStore } from '@/stores/playerStore'
+import { useUserStore } from '@/stores/userStore'
 import { getPlaylistDetail } from '@/api/musicApi'
 import type { MusicSource } from '@/api/musicApi'
 import type { Song } from '@/stores/playerStore'
@@ -9,14 +10,26 @@ import SongList from '@/components/SongList.vue'
 
 const route = useRoute()
 const player = usePlayerStore()
+const user = useUserStore()
 const playlist = ref<any>(null)
 const loading = ref(true)
 
-onMounted(async () => {
+onMounted(() => {
   const id = route.params.id as string
+  // Local playlist: look up from userStore
+  if (typeof id === 'string' && id.startsWith('local-')) {
+    const found = user.playlists.find(p => p.id === id)
+    playlist.value = found || null
+    loading.value = false
+    return
+  }
+  // Remote playlist: fetch from API
   const source = (route.query.source as MusicSource) || 'netease'
-  playlist.value = await getPlaylistDetail(id, source)
-  loading.value = false
+  getPlaylistDetail(id, source).then(data => {
+    playlist.value = data
+  }).finally(() => {
+    loading.value = false
+  })
 })
 
 function playAll() { if (playlist.value?.songs) player.playQueue(playlist.value.songs, 0) }
