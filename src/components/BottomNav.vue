@@ -14,11 +14,11 @@ const tabs = [
 </script>
 
 <template>
-  <nav class="fixed bottom-0 left-0 right-0 z-40 flex bg-white/85 backdrop-blur-xl border-t border-[#e8e8e8] safe-bottom">
+  <nav class="fixed bottom-0 left-0 right-0 z-40 flex bg-white/85 backdrop-blur-xl border-t border-[#e8e8e8] safe-bottom lg:hidden">
     <div
       v-for="tab in tabs"
       :key="tab.path"
-      class="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 cursor-pointer transition-colors"
+      class="flex-1 flex flex-col items-center justify-center gap-[2px] py-2 cursor-pointer transition-colors"
       :class="route.path === tab.path ? 'text-[#ec4141]' : 'text-[#999]'"
       @click="router.push(tab.path)"
     >
