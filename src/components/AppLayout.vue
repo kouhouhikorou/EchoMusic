@@ -10,24 +10,23 @@ const hideChrome = computed(() => route.name === 'player')
 </script>
 
 <template>
-  <div class="flex h-full w-full overflow-hidden">
-    <!-- Desktop Sidebar -->
+  <div class="flex h-full w-full overflow-hidden bg-surface-950">
+    <!-- Sidebar (desktop) -->
     <Sidebar v-if="!hideChrome" class="hidden lg:flex" />
 
-    <!-- Main Content -->
-    <main
-      class="flex-1 flex flex-col overflow-hidden"
-      :class="{ 'pb-16 lg:pb-20': !hideChrome }"
-    >
+    <!-- Main area -->
+    <main class="flex-1 flex flex-col overflow-hidden min-w-0" :class="{ 'pb-16 lg:pb-[72px]': !hideChrome }">
       <div class="flex-1 overflow-y-auto overflow-x-hidden">
-        <slot />
+        <router-view v-slot="{ Component }">
+          <transition name="page" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
       </div>
-
-      <!-- Mini Player -->
       <MiniPlayer v-if="!hideChrome" />
     </main>
   </div>
 
-  <!-- Mobile Bottom Nav -->
+  <!-- Bottom nav (mobile) -->
   <BottomNav v-if="!hideChrome" class="lg:hidden" />
 </template>
