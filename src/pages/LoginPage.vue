@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { login, register, logout, isLoggedIn, getUser } from '@/api/authApi'
+import { login, register, logout, isLoggedIn, getUser, getServerUrl } from '@/api/authApi'
 import { MailOutline, LockClosedOutline, PersonOutline, ArrowForwardOutline, LogOutOutline } from '@vicons/ionicons5'
 
 const router = useRouter()
@@ -104,6 +104,7 @@ function switchMode() { mode.value = mode.value === 'login' ? 'register' : 'logi
           {{ mode === 'login' ? '还没有账号？' : '已有账号？' }}
           <button @click="switchMode">{{ mode === 'login' ? '立即注册' : '去登录' }}</button>
         </p>
+        <p class="server-hint">服务器：{{ getServerUrl() }}</p>
       </div>
     </div>
   </div>
@@ -198,4 +199,5 @@ function switchMode() { mode.value = mode.value === 'login' ? 'register' : 'logi
   color: var(--color-primary); font-weight: 700; font-family: inherit; font-size: 13px;
 }
 .switch-text button:hover { text-decoration: underline; }
+.server-hint { text-align: center; font-size: 11px; opacity: 0.28; margin-top: 16px; font-family: monospace; word-break: break-all; }
 </style>
