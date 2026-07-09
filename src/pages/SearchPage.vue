@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { usePlayerStore } from '@/stores/playerStore'
 import { searchMusic, SOURCE_NAMES } from '@/api/musicApi'
 import type { MusicSource } from '@/api/musicApi'
@@ -7,8 +8,9 @@ import type { Song } from '@/stores/playerStore'
 import SongList from '@/components/SongList.vue'
 import { SearchOutline, CloseCircleOutline, FlameOutline } from '@vicons/ionicons5'
 
+const route = useRoute()
 const player = usePlayerStore()
-const keyword = ref('')
+const keyword = ref((route.query.q as string) || '')
 const results = ref<Song[]>([])
 const loading = ref(false)
 const searched = ref(false)
@@ -32,6 +34,9 @@ async function doSearch() {
 function setKeyword(kw: string) { keyword.value = kw; doSearch() }
 function clearKeyword() { keyword.value = ''; results.value = []; searched.value = false }
 function playSong(song: Song, songs: Song[], index: number) { player.playQueue(songs, index) }
+
+// Auto-search if navigated with query param
+onMounted(() => { if (keyword.value) doSearch() })
 </script>
 
 <template>

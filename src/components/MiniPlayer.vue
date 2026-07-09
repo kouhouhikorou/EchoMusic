@@ -19,25 +19,27 @@ function toggleLike() { if (song.value) user.toggleFavorite(song.value) }
 <template>
   <div
     v-if="song"
-    class="flex-shrink-0 bg-white/82 backdrop-blur-xl border-t border-[#e8e8e8] z-30"
+    class="flex-shrink-0 z-30"
+    style="background: rgba(255,255,255,0.78); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.06);"
   >
-    <!-- Progress bar -->
-    <div class="h-[3px] bg-[#f0f0f0] cursor-pointer" @click="(e: MouseEvent) => { const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); player.setProgress(((e.clientX - r.left) / r.width) * player.duration) }">
-      <div class="h-full bg-[#ec4141] rounded-r-sm transition-all duration-300" :style="{ width: `${progressPercent}%` }">
-        <div class="w-2.5 h-2.5 rounded-full bg-[#ec4141] absolute -top-[4px] right-0 opacity-0 hover:opacity-100 transition-opacity shadow" />
+    <!-- Progress -->
+    <div
+      class="h-[3px] bg-[#eee] cursor-pointer relative group"
+      @click="(e: MouseEvent) => { const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); player.setProgress(((e.clientX - r.left) / r.width) * player.duration) }"
+    >
+      <div class="h-full bg-[#ec4141] rounded-r-sm transition-all duration-300 relative" :style="{ width: `${progressPercent}%` }">
+        <div class="absolute -right-[5px] -top-[4px] w-3 h-3 rounded-full bg-[#ec4141] opacity-0 group-hover:opacity-100 transition-opacity shadow-md" />
       </div>
     </div>
 
     <div class="flex items-center gap-3 px-3 py-2">
-      <!-- Cover → click to player page -->
-      <div class="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer shadow-sm ring-1 ring-black/5"
-        @click="router.push('/player')"
-      >
-        <img v-if="song.cover" :src="song.cover" class="w-full h-full object-cover" />
+      <!-- Cover -->
+      <div class="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer shadow-sm ring-1 ring-black/5" @click="router.push('/player')">
+        <img v-if="song.cover" :src="song.cover" class="w-full h-full object-cover" alt="" />
         <div v-else class="w-full h-full bg-gradient-to-br from-[#ec4141] to-[#ff6b6b] flex items-center justify-center text-white text-sm">♪</div>
       </div>
 
-      <!-- Title + artist → click to player page -->
+      <!-- Info -->
       <div class="flex-1 min-w-0 cursor-pointer" @click="router.push('/player')">
         <div class="text-[13px] font-medium truncate text-[#1a1a1a]">{{ song.title }}</div>
         <div class="text-[11px] text-[#999] truncate mt-0.5">{{ song.artist }}</div>
@@ -49,31 +51,17 @@ function toggleLike() { if (song.value) user.toggleFavorite(song.value) }
           <Heart v-if="isLiked" class="w-[18px] h-[18px] text-[#ec4141]" />
           <HeartOutline v-else class="w-[18px] h-[18px]" />
         </button>
-        <button
-          class="min-h-[36px] min-w-[36px] flex items-center justify-center text-[#666] hover:text-[#333] transition-colors"
-          :class="{ 'opacity-30 pointer-events-none': !player.hasPrev }"
-          @click="player.prev()"
-        >
+        <button class="min-h-[36px] min-w-[36px] flex items-center justify-center text-[#666] hover:text-[#333] transition-colors" :class="{ 'opacity-30 pointer-events-none': !player.hasPrev }" @click="player.prev()">
           <PlaySkipBack class="w-[18px] h-[18px]" />
         </button>
-        <button
-          class="min-h-[36px] min-w-[36px] flex items-center justify-center text-[#ec4141] hover:scale-105 transition-transform"
-          @click="player.togglePlay()"
-        >
+        <button class="min-h-[36px] min-w-[36px] flex items-center justify-center text-[#ec4141] hover:scale-105 transition-transform" @click="player.togglePlay()">
           <Pause v-if="player.isPlaying" class="w-6 h-6" />
           <Play v-else class="w-6 h-6" />
         </button>
-        <button
-          class="min-h-[36px] min-w-[36px] flex items-center justify-center text-[#666] hover:text-[#333] transition-colors"
-          :class="{ 'opacity-30 pointer-events-none': !player.hasNext }"
-          @click="player.next()"
-        >
+        <button class="min-h-[36px] min-w-[36px] flex items-center justify-center text-[#666] hover:text-[#333] transition-colors" :class="{ 'opacity-30 pointer-events-none': !player.hasNext }" @click="player.next()">
           <PlaySkipForward class="w-[18px] h-[18px]" />
         </button>
-        <button
-          class="min-h-[36px] min-w-[36px] flex items-center justify-center text-[#999] hover:text-[#666] transition-colors"
-          @click="router.push('/player')"
-        >
+        <button class="min-h-[36px] min-w-[36px] flex items-center justify-center text-[#999] hover:text-[#666] transition-colors" @click="router.push('/player')">
           <ListOutline class="w-[18px] h-[18px]" />
         </button>
       </div>
