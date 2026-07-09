@@ -1,67 +1,54 @@
-import axios from 'axios'
+// Simple local auth — stores credentials in localStorage
+// Backend API integration (Phase 3) will replace this
 
-const authApi = axios.create({
-  timeout: 10000,
-})
-
-function getApiUrl(): string {
-  return localStorage.getItem('echomusic-api-url') || 'https://echomusic-api.vercel.app'
+function hash(str: string): string {
+  // Simple hash for local storage (NOT for production)
+  let h = 0
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i)
+    h = ((h << 5) - h) + c
+    h |= 0
+  }
+  return 'echo_' + Math.abs(h).toString(36)
 }
 
-// ---- Phase 3: Account system (placeholder for now) ----
-
 export async function register(username: string, email: string, password: string) {
-  const baseUrl = getApiUrl()
-  try {
-    const { data } = await authApi.post(`${baseUrl}/auth/register`, {
-      username, email, password,
-    })
-    return data
-  } catch {
-    throw new Error('注册失败，请稍后重试')
-  }
+  const users = JSON.parse(localStorage.getItem('echomusic-users') || '{}')
+  if (users[email]) throw new Error('该邮箱已注册')
+  users[email] = { username, email, passwordHash: hash(password), createdAt: Date.now() }
+  localStorage.setItem('echomusic-users', JSON.stringify(users))
+
+  // Auto login after register
+  localStorage.setItem('echomusic-token', email)
+  localStorage.setItem('echomusic-user', JSON.stringify({ username, email }))
 }
 
 export async function login(email: string, password: string) {
-  const baseUrl = getApiUrl()
-  try {
-    const { data } = await authApi.post(`${baseUrl}/auth/login`, {
-      email, password,
-    })
-    if (data.token) {
-      localStorage.setItem('echomusic-token', data.token)
-      localStorage.setItem('echomusic-refresh-token', data.refreshToken)
-    }
-    return data
-  } catch {
-    throw new Error('登录失败，请检查邮箱和密码')
-  }
-}
+  const users = JSON.parse(localStorage.getItem('echomusic-users') || '{}')
+  const user = users[email]
+  if (!user) throw new Error('账号不存在')
+  if (user.passwordHash !== hash(password)) throw new Error('密码错误')
 
-export async function refreshToken() {
-  const baseUrl = getApiUrl()
-  const refreshToken = localStorage.getItem('echomusic-refresh-token')
-  if (!refreshToken) return null
-
-  try {
-    const { data } = await authApi.post(`${baseUrl}/auth/refresh`, { refreshToken })
-    if (data.token) {
-      localStorage.setItem('echomusic-token', data.token)
-    }
-    return data.token
-  } catch {
-    localStorage.removeItem('echomusic-token')
-    localStorage.removeItem('echomusic-refresh-token')
-    return null
-  }
+  localStorage.setItem('echomusic-token', email)
+  localStorage.setItem('echomusic-user', JSON.stringify({ username: user.username, email: user.email }))
 }
 
 export function logout() {
   localStorage.removeItem('echomusic-token')
-  localStorage.removeItem('echomusic-refresh-token')
-  window.location.reload()
+  localStorage.removeItem('echomusic-user')
 }
 
 export function getToken(): string | null {
   return localStorage.getItem('echomusic-token')
+}
+
+export function getUser(): { username: string; email: string } | null {
+  try {
+    const u = localStorage.getItem('echomusic-user')
+    return u ? JSON.parse(u) : null
+  } catch { return null }
+}
+
+export function isLoggedIn(): boolean {
+  return !!getToken()
 }
