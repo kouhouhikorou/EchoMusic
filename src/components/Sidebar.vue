@@ -70,7 +70,7 @@ function isActive(p: string) {
     <div class="sidebar-divider" />
 
     <!-- Playlists -->
-    <div class="sidebar-section flex-1 overflow-y-auto">
+    <div class="sidebar-section flex-1">
       <div class="sidebar-label-row">
         <span class="sidebar-label">我的歌单</span>
         <button class="sidebar-add-btn" @click="user.createPlaylist('新歌单')">
@@ -111,7 +111,7 @@ function isActive(p: string) {
 <style scoped>
 .sidebar {
   width: 200px; height: 100%; display: flex; flex-direction: column; flex-shrink: 0;
-  overflow: hidden; user-select: none;
+  overflow-y: auto; overflow-x: hidden; user-select: none;
   border-right: 1px solid rgba(0,0,0,0.06);
   background: rgba(255,255,255,0.95);
   backdrop-filter: blur(20px);
@@ -130,7 +130,7 @@ function isActive(p: string) {
 
 .sidebar-nav { padding: 8px; }
 .sidebar-section { padding: 0 8px; }
-.sidebar-footer { padding: 8px; border-top: 1px solid rgba(0,0,0,0.05); }
+.sidebar-footer { padding: 8px; border-top: 1px solid rgba(0,0,0,0.05); margin-top: auto; }
 
 .nav-item {
   display: flex; align-items: center; gap: 8px; padding: 8px 12px;
