@@ -67,9 +67,15 @@ function playSong(song: Song, songs: Song[], index: number) { player.playQueue(s
     </div>
   </div>
 
-  <!-- Empty -->
-  <div v-if="!keywords" class="absolute inset-0 flex items-center justify-center text-2xl text-[var(--color-text)] opacity-28">
-    🔍 输入关键字搜索
+  <!-- No keywords: show search prompt -->
+  <div v-if="!keywords" class="search-empty">
+    <div class="search-empty-icon">🔍</div>
+    <div class="search-empty-title">搜索音乐</div>
+    <div class="search-empty-desc">在上方搜索框中输入关键词 或 点击热门搜索</div>
+    <div class="hot-tags">
+      <span v-for="kw in ['周杰伦','Taylor Swift','林俊杰','陈奕迅','ACG','纯音乐']" :key="kw"
+        class="hot-tag" @click="$router.push({ name: 'search', params: { keywords: kw } })">{{ kw }}</span>
+    </div>
   </div>
 </template>
 
@@ -82,4 +88,19 @@ function playSong(song: Song, songs: Song[], index: number) { player.playQueue(s
   font-size: 13px; font-weight: 600; opacity: 0.68;
 }
 .section-title a:hover { text-decoration: underline; }
+
+.search-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding-top: 15vh; text-align: center;
+}
+.search-empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.28; }
+.search-empty-title { font-size: 28px; font-weight: 700; color: var(--color-text); margin-bottom: 8px; }
+.search-empty-desc { font-size: 14px; opacity: 0.48; color: var(--color-text); margin-bottom: 24px; }
+.hot-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 420px; }
+.hot-tag {
+  padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: 600;
+  background: var(--color-secondary-bg); color: var(--color-text); opacity: 0.68;
+  cursor: pointer; transition: all 0.15s;
+}
+.hot-tag:hover { opacity: 1; background: var(--color-primary-bg); color: var(--color-primary); }
 </style>
