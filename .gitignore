@@ -5,3 +5,5 @@ dist/
 .DS_Store
 Thumbs.db
 tsconfig.tsbuildinfo
+server/node_modules/
+server/echomusic.db
