@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Song } from './playerStore'
+import { isLoggedIn as checkLoggedIn, syncFavorites, loadFavorites, syncPlaylists, loadPlaylists, syncRecent, loadRecent } from '@/api/authApi'
 
 export interface Playlist {
   id: string
@@ -138,14 +139,83 @@ export const useUserStore = defineStore('user', () => {
     saveToStorage()
   }
 
+  // Cloud sync
+  async function syncToCloud() {
+    if (!checkLoggedIn()) return
+    try {
+      await Promise.all([
+        syncFavorites(favorites.value),
+        syncPlaylists(playlists.value),
+        syncRecent(recentPlays.value.slice(0, 100)),
+      ])
+    } catch {}
+  }
+
+  async function pullFromCloud() {
+    if (!checkLoggedIn()) return
+    try {
+      const [favs, pls, recent] = await Promise.all([
+        loadFavorites(), loadPlaylists(), loadRecent(),
+      ])
+      if (favs.length) favorites.value = favs
+      if (pls.length) playlists.value = pls
+      if (recent.length) recentPlays.value = recent
+      saveToStorage()
+    } catch {}
+  }
+
+  // Auto-sync when data changes
+  async function saveToStorageAndSync() {
+    saveToStorage()
+    await syncToCloud()
+  }
+
+  // Override saveToStorage with sync version
+  async function toggleFavoriteWithSync(song: Song) {
+    const idx = favorites.value.findIndex(s => s.id === song.id && s.source === song.source)
+    if (idx === -1) favorites.value.unshift(song)
+    else favorites.value.splice(idx, 1)
+    await saveToStorageAndSync()
+  }
+
+  async function createPlaylistWithSync(name: string, description = ''): Promise<Playlist> {
+    const playlist: Playlist = {
+      id: `local-${Date.now()}`, name, cover: '', description, songs: [],
+      source: 'local', created: Date.now(), updated: Date.now(),
+    }
+    playlists.value.push(playlist)
+    await saveToStorageAndSync()
+    return playlist
+  }
+
+  async function deletePlaylistWithSync(id: string) {
+    const idx = playlists.value.findIndex(p => p.id === id)
+    if (idx !== -1) { playlists.value.splice(idx, 1); await saveToStorageAndSync() }
+  }
+
+  async function addToPlaylistWithSync(playlistId: string, song: Song) {
+    const playlist = playlists.value.find(p => p.id === playlistId)
+    if (playlist && !playlist.songs.some(s => s.id === song.id)) {
+      playlist.songs.push(song)
+      playlist.updated = Date.now()
+      await saveToStorageAndSync()
+    }
+  }
+
   // Initialize
   loadFromStorage()
+  if (checkLoggedIn()) pullFromCloud()
 
   return {
     favorites, playlists, recentPlays, isLoggedIn, userInfo, settings,
     loadFromStorage, saveToStorage,
-    toggleFavorite, isFavorite,
-    createPlaylist, deletePlaylist, addToPlaylist, removeFromPlaylist,
+    isFavorite, removeFromPlaylist,
     updateSettings, updateSourcePriority,
+    // Cloud-synced versions (override originals)
+    syncToCloud, pullFromCloud,
+    toggleFavorite: toggleFavoriteWithSync,
+    createPlaylist: createPlaylistWithSync,
+    deletePlaylist: deletePlaylistWithSync,
+    addToPlaylist: addToPlaylistWithSync,
   }
 })

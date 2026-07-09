@@ -1,36 +1,33 @@
-// Simple local auth — stores credentials in localStorage
-// Backend API integration (Phase 3) will replace this
+import axios from 'axios'
 
-function hash(str: string): string {
-  // Simple hash for local storage (NOT for production)
-  let h = 0
-  for (let i = 0; i < str.length; i++) {
-    const c = str.charCodeAt(i)
-    h = ((h << 5) - h) + c
-    h |= 0
-  }
-  return 'echo_' + Math.abs(h).toString(36)
+let serverUrl = localStorage.getItem('echomusic-server-url') || 'http://localhost:3001'
+
+export function setServerUrl(url: string) {
+  serverUrl = url
+  localStorage.setItem('echomusic-server-url', url)
 }
 
-export async function register(username: string, email: string, password: string) {
-  const users = JSON.parse(localStorage.getItem('echomusic-users') || '{}')
-  if (users[email]) throw new Error('该邮箱已注册')
-  users[email] = { username, email, passwordHash: hash(password), createdAt: Date.now() }
-  localStorage.setItem('echomusic-users', JSON.stringify(users))
+export function getServerUrl(): string {
+  return serverUrl
+}
 
-  // Auto login after register
-  localStorage.setItem('echomusic-token', email)
-  localStorage.setItem('echomusic-user', JSON.stringify({ username, email }))
+// ---- Auth ----
+export async function register(username: string, email: string, password: string) {
+  const { data } = await axios.post(`${serverUrl}/auth/register`, { username, email, password })
+  if (data.token) {
+    localStorage.setItem('echomusic-token', data.token)
+    localStorage.setItem('echomusic-user', JSON.stringify(data.user))
+  }
+  return data.user
 }
 
 export async function login(email: string, password: string) {
-  const users = JSON.parse(localStorage.getItem('echomusic-users') || '{}')
-  const user = users[email]
-  if (!user) throw new Error('账号不存在')
-  if (user.passwordHash !== hash(password)) throw new Error('密码错误')
-
-  localStorage.setItem('echomusic-token', email)
-  localStorage.setItem('echomusic-user', JSON.stringify({ username: user.username, email: user.email }))
+  const { data } = await axios.post(`${serverUrl}/auth/login`, { email, password })
+  if (data.token) {
+    localStorage.setItem('echomusic-token', data.token)
+    localStorage.setItem('echomusic-user', JSON.stringify(data.user))
+  }
+  return data.user
 }
 
 export function logout() {
@@ -42,7 +39,7 @@ export function getToken(): string | null {
   return localStorage.getItem('echomusic-token')
 }
 
-export function getUser(): { username: string; email: string } | null {
+export function getUser(): { id: string; username: string; email: string } | null {
   try {
     const u = localStorage.getItem('echomusic-user')
     return u ? JSON.parse(u) : null
@@ -51,4 +48,52 @@ export function getUser(): { username: string; email: string } | null {
 
 export function isLoggedIn(): boolean {
   return !!getToken()
+}
+
+// ---- Sync helpers ----
+function authHeaders() {
+  const token = getToken()
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
+// Favorites
+export async function syncFavorites(songs: any[]) {
+  if (!isLoggedIn()) return
+  try { await axios.post(`${serverUrl}/sync/favorites`, { songs }, { headers: authHeaders() }) } catch {}
+}
+
+export async function loadFavorites(): Promise<any[]> {
+  if (!isLoggedIn()) return []
+  try {
+    const { data } = await axios.get(`${serverUrl}/sync/favorites`, { headers: authHeaders() })
+    return data.songs || []
+  } catch { return [] }
+}
+
+// Playlists
+export async function syncPlaylists(playlists: any[]) {
+  if (!isLoggedIn()) return
+  try { await axios.post(`${serverUrl}/sync/playlists`, { playlists }, { headers: authHeaders() }) } catch {}
+}
+
+export async function loadPlaylists(): Promise<any[]> {
+  if (!isLoggedIn()) return []
+  try {
+    const { data } = await axios.get(`${serverUrl}/sync/playlists`, { headers: authHeaders() })
+    return data.playlists || []
+  } catch { return [] }
+}
+
+// Recent plays
+export async function syncRecent(songs: any[]) {
+  if (!isLoggedIn()) return
+  try { await axios.post(`${serverUrl}/sync/recent`, { songs }, { headers: authHeaders() }) } catch {}
+}
+
+export async function loadRecent(): Promise<any[]> {
+  if (!isLoggedIn()) return []
+  try {
+    const { data } = await axios.get(`${serverUrl}/sync/recent`, { headers: authHeaders() })
+    return data.songs || []
+  } catch { return [] }
 }
