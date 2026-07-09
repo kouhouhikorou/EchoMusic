@@ -1,83 +1,66 @@
 <script setup lang="ts">
-import { useUserStore } from '@/stores/userStore'
 import { ref } from 'vue'
+import { useUserStore } from '@/stores/userStore'
 import { resetDisclaimer } from '@/utils/disclaimer'
-import { SOURCE_NAMES } from '@/api/musicApi'
-import { MoonOutline, SunnyOutline } from '@vicons/ionicons5'
 
 const user = useUserStore()
-const apiUrlInput = ref(user.settings.apiUrl)
-const showSaved = ref(false)
-const sources = ref([...user.settings.sourcePriority])
+const apiUrl = ref(user.settings.apiUrl)
+const saved = ref(false)
 
-function saveApi() { user.updateSettings({ apiUrl: apiUrlInput.value }); showSaved.value = true; setTimeout(() => showSaved.value = false, 2000) }
+function saveApi() { user.updateSettings({ apiUrl: apiUrl.value }); saved.value = true; setTimeout(() => saved.value = false, 2000) }
 function showDisclaimer() { resetDisclaimer(); window.location.reload() }
-
-let dragIdx = -1
-function onDragStart(i: number) { dragIdx = i }
-function onDragOver(e: DragEvent, i: number) { e.preventDefault(); if (dragIdx === -1 || dragIdx === i) return; const c = [...sources.value]; [c[dragIdx], c[i]] = [c[i], c[dragIdx]]; sources.value = c; dragIdx = i }
-function onDragEnd() { dragIdx = -1; user.updateSourcePriority(sources.value) }
 </script>
 
 <template>
-  <div class="h-full overflow-y-auto bg-[#fafafa]">
-    <div class="max-w-[640px] mx-auto px-6 py-6 space-y-8">
-      <h2 class="text-[22px] font-bold text-[#1a1a1a]">设置</h2>
+  <div>
+    <div class="section-title">设置</div>
 
-      <!-- Theme -->
-      <section class="bg-white rounded-xl border border-[#f0f0f0] p-4">
-        <h3 class="text-xs font-semibold text-[#999] uppercase tracking-wider mb-3">外观</h3>
-        <div class="flex gap-2">
-          <button v-for="t in ([{k:'light',l:'浅色',i:SunnyOutline},{k:'dark',l:'深色',i:MoonOutline},{k:'auto',l:'自动',i:SunnyOutline}] as const)" :key="t.k"
-            class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[13px] font-medium transition-all border"
-            :class="user.settings.theme === t.k ? 'bg-[#fef0f0] text-[#ec4141] border-[#ec4141]/20' : 'text-[#999] border-[#f0f0f0] hover:border-[#ddd]'"
-            @click="user.updateSettings({ theme: t.k })">
-            <component :is="t.i" class="w-4 h-4" />{{ t.l }}
-          </button>
-        </div>
-      </section>
+    <div class="settings-group">
+      <div class="settings-label">API 地址</div>
+      <div class="flex gap-2">
+        <input v-model="apiUrl" class="settings-input" placeholder="https://your-api.vercel.app" />
+        <button class="settings-btn" @click="saveApi">保存</button>
+      </div>
+      <div v-if="saved" class="text-xs text-green-500 mt-1">✓ 已保存</div>
+    </div>
 
-      <!-- API -->
-      <section class="bg-white rounded-xl border border-[#f0f0f0] p-4">
-        <h3 class="text-xs font-semibold text-[#999] uppercase tracking-wider mb-3">API 配置</h3>
-        <div class="space-y-3">
-          <div>
-            <label class="text-[11px] text-[#999] block mb-1">API 地址</label>
-            <div class="flex gap-2">
-              <input v-model="apiUrlInput" class="flex-1 bg-[#fafafa] border border-[#e8e8e8] rounded-lg px-3 py-2 text-[13px] text-[#333] outline-none focus:border-[#ec4141] transition-colors" placeholder="https://your-api.vercel.app" />
-              <button class="px-4 py-2 bg-[#ec4141] hover:bg-[#d63636] rounded-lg text-[13px] font-medium text-white transition-colors" @click="saveApi">保存</button>
-            </div>
-            <p v-if="showSaved" class="text-xs text-green-500 mt-1">✓ 已保存</p>
-          </div>
-          <div>
-            <label class="text-[11px] text-[#999] block mb-2">音源优先级 (拖拽排序)</label>
-            <div class="space-y-1">
-              <div v-for="(src, idx) in sources" :key="src"
-                class="flex items-center gap-3 px-3 py-2.5 bg-[#fafafa] border border-[#f0f0f0] rounded-lg cursor-move text-[13px] text-[#333] hover:border-[#ddd] transition-colors"
-                draggable="true" @dragstart="onDragStart(idx)" @dragover="onDragOver($event, idx)" @dragend="onDragEnd">
-                <span class="text-[#ccc] text-xs">☰</span>
-                <span class="text-[#ccc] text-xs w-4">{{ idx + 1 }}</span>
-                <span>{{ SOURCE_NAMES[src] }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+    <div class="settings-group">
+      <div class="settings-label">外观</div>
+      <div class="flex gap-2">
+        <button v-for="t in (['light','dark','auto'] as const)" :key="t"
+          class="settings-btn" :class="{ '!bg-[var(--color-primary)] !text-white': user.settings.theme === t }"
+          @click="user.updateSettings({ theme: t })"
+        >{{ t === 'light' ? '浅色' : t === 'dark' ? '深色' : '自动' }}</button>
+      </div>
+    </div>
 
-      <!-- Playback -->
-      <section class="bg-white rounded-xl border border-[#f0f0f0] p-4">
-        <h3 class="text-xs font-semibold text-[#999] uppercase tracking-wider mb-3">播放</h3>
-        <div class="space-y-3">
-          <label class="flex items-center justify-between"><span class="text-[13px] text-[#333]">封面旋转动画</span><input type="checkbox" :checked="user.settings.coverSpin" class="w-5 h-5 rounded accent-[#ec4141]" @change="user.updateSettings({ coverSpin: ($event.target as HTMLInputElement).checked })" /></label>
-          <label class="flex items-center justify-between"><span class="text-[13px] text-[#333]">淡入淡出</span><input type="checkbox" :checked="user.settings.crossfadeEnabled" class="w-5 h-5 rounded accent-[#ec4141]" @change="user.updateSettings({ crossfadeEnabled: ($event.target as HTMLInputElement).checked })" /></label>
-        </div>
-      </section>
+    <div class="settings-group">
+      <div class="settings-label">播放</div>
+      <label class="flex items-center gap-2 text-sm cursor-pointer">
+        <input type="checkbox" :checked="user.settings.coverSpin" class="accent-[var(--color-primary)]" @change="user.updateSettings({ coverSpin: ($event.target as HTMLInputElement).checked })" /> 封面旋转动画
+      </label>
+    </div>
 
-      <!-- About -->
-      <section class="bg-white rounded-xl border border-[#f0f0f0] divide-y divide-[#f0f0f0]">
-        <div class="px-4 py-3 text-[13px] text-[#666] cursor-pointer hover:text-[#ec4141] transition-colors" @click="showDisclaimer">查看免责声明</div>
-        <div class="px-4 py-3 text-[13px] text-[#ccc]">EchoMusic v0.1.0 · MIT</div>
-      </section>
+    <div class="settings-group">
+      <button class="text-sm text-[var(--color-primary)] hover:underline" @click="showDisclaimer">查看免责声明</button>
+      <div class="text-xs opacity-38 mt-2">EchoMusic v0.1.0 · MIT</div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.section-title { font-size: 28px; font-weight: 700; color: var(--color-text); margin-bottom: 32px; margin-top: 24px; }
+.settings-group { margin-bottom: 24px; }
+.settings-label { font-size: 14px; font-weight: 600; opacity: 0.68; margin-bottom: 8px; color: var(--color-text); }
+.settings-input {
+  flex: 1; background: var(--color-secondary-bg); border: 1px solid #e0e0e0;
+  border-radius: 8px; padding: 8px 12px; font-size: 14px; color: var(--color-text);
+  outline: none; font-family: inherit;
+}
+.settings-input:focus { border-color: var(--color-primary); }
+.settings-btn {
+  padding: 8px 16px; background: var(--color-secondary-bg); border-radius: 8px;
+  font-size: 14px; font-weight: 600; color: var(--color-text); transition: all 0.2s;
+}
+.settings-btn:hover { background: var(--color-primary-bg-for-transparent); }
+</style>

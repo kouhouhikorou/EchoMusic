@@ -10,12 +10,14 @@ function play(s: Song, l: Song[], i: number) { player.playQueue(l, i) }
 </script>
 
 <template>
-  <div class="h-full overflow-y-auto bg-[#fafafa]">
-    <div class="max-w-[900px] mx-auto px-6 py-6">
-      <h2 class="text-[22px] font-bold text-[#1a1a1a] mb-6">最近播放</h2>
-      <div class="bg-white rounded-xl border border-[#f0f0f0] overflow-hidden">
-        <SongList :songs="user.recentPlays" :show-index="true" :show-cover="true" :show-album="true" @play="(s, i) => play(s, user.recentPlays, i)" />
-      </div>
-    </div>
+  <div>
+    <div class="section-title">最近播放</div>
+    <SongList :songs="user.recentPlays" type="tracklist" :show-index="true" :show-album="true" @play="(s, i) => play(s, user.recentPlays, i)" />
   </div>
 </template>
+
+<style scoped>
+.section-title {
+  font-size: 28px; font-weight: 700; color: var(--color-text); margin-bottom: 20px; margin-top: 24px;
+}
+</style>
