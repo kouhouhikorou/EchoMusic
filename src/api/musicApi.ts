@@ -48,16 +48,32 @@ const api = axios.create({
   timeout: 15000,
 })
 
+// Transform netease track to unified Song
+function neteaseTrackToSong(track: any, source: MusicSource): Song {
+  return {
+    id: track.id,
+    title: track.name || track.title || '',
+    artist: track.ar ? track.ar.map((a: any) => a.name).join('/') : (track.artist || ''),
+    album: track.al?.name || track.album || '',
+    cover: track.al?.picUrl || track.cover || '',
+    url: '',
+    duration: (track.dt || track.duration || 0) / 1000,
+    lyric: '',
+    source,
+  }
+}
+
 // Unified search across sources
 export async function searchMusic(params: SearchParams): Promise<SearchResponse> {
   const { keyword, source = 'netease', type = 'song', limit = 30, offset = 0 } = params
   const baseUrl = getApiUrl()
 
   try {
-    const { data } = await api.get(`${baseUrl}/api/search`, {
-      params: { keyword, source, type, limit, offset },
+    const { data } = await api.get(`${baseUrl}/search`, {
+      params: { keywords: keyword, type: type === 'song' ? 1 : type === 'album' ? 10 : type === 'artist' ? 100 : 1000, limit, offset },
     })
-    return data
+    const songs = (data.result?.songs || data.songs || []).map((s: any) => neteaseTrackToSong(s, source))
+    return { source, songs, total: data.result?.songCount || songs.length, hasMore: (data.result?.songCount || 0) > offset + songs.length }
   } catch {
     return { source, songs: [], total: 0, hasMore: false }
   }
@@ -71,29 +87,20 @@ export async function getSongUrl(
 ): Promise<string | null> {
   const baseUrl = getApiUrl()
 
-  // Try primary source first
   try {
-    const { data } = await api.get(`${baseUrl}/api/song/url`, {
-      params: { id: songId, source, quality },
+    const level = quality === 'lossless' ? 'lossless' : quality === 'higher' ? 'higher' : 'standard'
+    const { data } = await api.get(`${baseUrl}/song/url/v1`, {
+      params: { id: songId, level },
     })
-    if (data.url) return data.url
+    if (data.data?.[0]?.url) return data.data[0].url
   } catch {
-    // will try fallback below
-  }
-
-  // Fallback: try other sources
-  const userStore = (await import('@/stores/userStore')).useUserStore()
-  const priorities = userStore.settings.sourcePriority.filter(s => s !== source)
-
-  for (const fallbackSource of priorities) {
+    // fallback: try without v1
     try {
-      const { data } = await api.get(`${baseUrl}/api/song/url`, {
-        params: { id: songId, source: fallbackSource, quality },
+      const { data } = await api.get(`${baseUrl}/song/url`, {
+        params: { id: songId },
       })
-      if (data.url) return data.url
-    } catch {
-      continue
-    }
+      if (data.data?.[0]?.url) return data.data[0].url
+    } catch {}
   }
 
   return null
@@ -107,23 +114,14 @@ export async function getLyric(
   const baseUrl = getApiUrl()
 
   try {
-    const { data } = await api.get(`${baseUrl}/api/lyric`, {
-      params: { id: songId, source },
+    const { data } = await api.get(`${baseUrl}/lyric`, {
+      params: { id: songId },
     })
-    return { lyric: data.lyric || '', tlyric: data.tlyric }
-  } catch {
-    // Try fallback sources for lyrics
-    const priorities = ['netease', 'qq', 'kugou'].filter(s => s !== source)
-    for (const fallbackSource of priorities) {
-      try {
-        const { data } = await api.get(`${baseUrl}/api/lyric`, {
-          params: { id: songId, source: fallbackSource },
-        })
-        if (data.lyric) return { lyric: data.lyric, tlyric: data.tlyric }
-      } catch {
-        continue
-      }
+    return {
+      lyric: data.lrc?.lyric || data.lyric || '',
+      tlyric: data.tlyric?.lyric || data.tlyric || undefined,
     }
+  } catch {
     return { lyric: '' }
   }
 }
@@ -136,10 +134,19 @@ export async function getPlaylistDetail(
   const baseUrl = getApiUrl()
 
   try {
-    const { data } = await api.get(`${baseUrl}/api/playlist/detail`, {
-      params: { id, source },
+    const { data } = await api.get(`${baseUrl}/playlist/detail`, {
+      params: { id },
     })
-    return data
+    const pl = data.playlist || data
+    return {
+      id: pl.id,
+      name: pl.name,
+      cover: pl.coverImgUrl || pl.picUrl || pl.cover || '',
+      description: pl.description || '',
+      songs: (pl.tracks || pl.songs || []).map((s: any) => neteaseTrackToSong(s, source)),
+      creator: pl.creator?.nickname || pl.creator || '',
+      playCount: pl.playCount || 0,
+    }
   } catch {
     return null
   }
@@ -150,10 +157,11 @@ export async function getRecommendPlaylists(source: MusicSource = 'netease', lim
   const baseUrl = getApiUrl()
 
   try {
-    const { data } = await api.get(`${baseUrl}/api/recommend/playlists`, {
-      params: { source, limit },
+    const { data } = await api.get(`${baseUrl}/personalized`, {
+      params: { limit },
     })
-    return data.playlists || []
+    // NeteaseCloudMusicApi returns { result: [...] }
+    return data.result || data.playlists || []
   } catch {
     return []
   }
@@ -167,7 +175,7 @@ export async function getAlbumDetail(
   const baseUrl = getApiUrl()
 
   try {
-    const { data } = await api.get(`${baseUrl}/api/album/detail`, {
+    const { data } = await api.get(`${baseUrl}/album/detail`, {
       params: { id, source },
     })
     return data
@@ -181,7 +189,7 @@ export async function getArtistDetail(id: string | number, source: MusicSource) 
   const baseUrl = getApiUrl()
 
   try {
-    const { data } = await api.get(`${baseUrl}/api/artist/detail`, {
+    const { data } = await api.get(`${baseUrl}/artist/detail`, {
       params: { id, source },
     })
     return data
