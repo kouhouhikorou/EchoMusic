@@ -106,7 +106,8 @@ function switchMode() { mode.value = mode.value === 'login' ? 'register' : 'logi
 
 <style scoped>
 .login-root {
-  height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px;
+  min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 40px 24px;
+  overflow-y: auto;
 }
 
 /* ---- Logged In ---- */
@@ -136,11 +137,11 @@ function switchMode() { mode.value = mode.value === 'login' ? 'register' : 'logi
 /* ---- Form Card ---- */
 .form-card {
   width: 100%; max-width: 400px;
-  background: #fff; border-radius: 20px; padding: 40px 36px;
+  background: #fff; border-radius: 20px; padding: 32px 28px;
   box-shadow: 0 2px 24px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.04);
 }
 .form-header {
-  text-align: center; margin-bottom: 32px;
+  text-align: center; margin-bottom: 24px;
 }
 .logo-mark {
   width: 48px; height: 48px; border-radius: 14px;
@@ -153,7 +154,7 @@ function switchMode() { mode.value = mode.value === 'login' ? 'register' : 'logi
 .form-header p { font-size: 13px; opacity: 0.48; line-height: 1.5; }
 
 /* ---- Fields ---- */
-.form-body { display: flex; flex-direction: column; gap: 12px; }
+.form-body { display: flex; flex-direction: column; gap: 10px; }
 .field {
   position: relative; display: flex; align-items: center;
 }
