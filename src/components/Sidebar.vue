@@ -8,7 +8,8 @@ const route = useRoute()
 const user = useUserStore()
 
 const primaryNav = [
-  { path: '/', label: '发现音乐' },
+  { path: '/', label: '首页' },
+  { path: '/explore', label: '发现音乐' },
   { path: '/search', label: '搜索' },
   { path: '/local', label: '本地音乐' },
 ]

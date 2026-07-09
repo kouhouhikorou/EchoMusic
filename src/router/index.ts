@@ -6,7 +6,13 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     name: 'home',
     component: () => import('@/pages/HomePage.vue'),
-    meta: { title: 'EchoMusic' },
+    meta: { title: '首页 - EchoMusic' },
+  },
+  {
+    path: '/explore',
+    name: 'explore',
+    component: () => import('@/pages/ExplorePage.vue'),
+    meta: { title: '发现音乐' },
   },
   {
     path: '/search',

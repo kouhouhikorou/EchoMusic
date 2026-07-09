@@ -28,7 +28,8 @@ function doSearch() {
     </div>
 
     <div class="nav-links">
-      <router-link to="/" :class="{ active: route.name === 'home' }">发现</router-link>
+      <router-link to="/" :class="{ active: route.name === 'home' }">首页</router-link>
+      <router-link to="/explore" :class="{ active: route.name === 'explore' }">发现</router-link>
       <router-link to="/search" :class="{ active: route.name === 'search' }">搜索</router-link>
       <router-link to="/local" :class="{ active: route.name === 'local' }">本地</router-link>
     </div>
