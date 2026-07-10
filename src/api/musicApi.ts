@@ -41,7 +41,7 @@ export const SOURCE_NAMES: Record<string, string> = {
 export const SOURCE_PRIORITY: MusicSource[] = ['netease', 'qq', 'kugou', 'bilibili']
 
 function getApiUrl(): string {
-  return localStorage.getItem('echomusic-api-url') || 'https://echomusic-api.vercel.app'
+  return localStorage.getItem('echomusic-api-url') || 'http://localhost:3000'
 }
 
 const api = axios.create({

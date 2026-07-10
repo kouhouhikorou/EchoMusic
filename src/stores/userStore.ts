@@ -36,7 +36,7 @@ export const useUserStore = defineStore('user', () => {
 
   const settings = ref<UserSettings>({
     theme: 'dark',
-    apiUrl: localStorage.getItem('echomusic-api-url') || 'https://echomusic-api.vercel.app',
+    apiUrl: localStorage.getItem('echomusic-api-url') || 'http://localhost:3000',
     sourcePriority: ['netease', 'qq', 'kugou', 'bilibili'],
     sourceSwitchConfirm: false,
     sourceTimeout: 8,
