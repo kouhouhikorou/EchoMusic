@@ -8,13 +8,47 @@ const router = useRouter()
 const player = usePlayerStore()
 const user = useUserStore()
 const progress = ref(0)
+const audio = ref<HTMLAudioElement | null>(null)
 let interval: ReturnType<typeof setInterval> | null = null
 
 const currentTrack = computed(() => player.currentSong)
 const isLiked = computed(() => currentTrack.value ? user.isFavorite(currentTrack.value) : false)
 
-onMounted(() => { interval = setInterval(() => { progress.value = player.progress }, 1000) })
-onBeforeUnmount(() => { if (interval) clearInterval(interval) })
+// Audio element
+onMounted(() => {
+  audio.value = new Audio()
+  audio.value.volume = player.volume
+  interval = setInterval(() => {
+    if (audio.value && !audio.value.paused) {
+      progress.value = audio.value.currentTime
+      player.setProgress(audio.value.currentTime)
+    }
+  }, 500)
+})
+onBeforeUnmount(() => {
+  if (interval) clearInterval(interval)
+  audio.value?.pause()
+  audio.value = null
+})
+
+// Watch: play when song changes or isPlaying toggles
+import { watch } from 'vue'
+watch(() => player.currentSong, (song) => {
+  if (!audio.value || !song?.url) return
+  audio.value.src = song.url
+  if (player.isPlaying) audio.value.play().catch(() => {})
+  player.duration = song.duration
+})
+
+watch(() => player.isPlaying, (playing) => {
+  if (!audio.value) return
+  if (playing) audio.value.play().catch(() => {})
+  else audio.value.pause()
+})
+
+watch(() => player.volume, (v) => {
+  if (audio.value) audio.value.volume = v
+})
 
 function toggleLike() { if (currentTrack.value) user.toggleFavorite(currentTrack.value) }
 </script>

@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { getSongUrl } from '@/api/musicApi'
+import type { MusicSource } from '@/api/musicApi'
 
 export interface Song {
   id: string | number
@@ -44,12 +46,22 @@ export const usePlayerStore = defineStore('player', () => {
     return index.value > 0
   })
 
-  function playSong(song: Song) {
+  async function playSong(song: Song) {
     currentSong.value = song
     isPlaying.value = true
     isLoading.value = true
     currentSource.value = song.source
     addToHistory(song)
+
+    // Fetch playback URL if not already present
+    if (!song.url && song.source !== 'local') {
+      const url = await getSongUrl(song.id, song.source as MusicSource)
+      if (url) {
+        song.url = url
+        currentSong.value = { ...song, url }
+      }
+    }
+    isLoading.value = false
   }
 
   function playQueue(songs: Song[], startIndex = 0) {
